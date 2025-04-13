@@ -103,7 +103,7 @@ static long read(long fd, void *buffer, unsigned long size)
     return ret;
 }
 
-static long write(long fd, const void *buffer, unsigned long size)
+long write(long fd, const void *buffer, unsigned long size)
 {
     long ret = 0;
     asm("movq $4,%%rax      \n\t"
