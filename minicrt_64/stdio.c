@@ -158,7 +158,7 @@ FILE *fopen(const char *filename, const char *mode)
     if (strcmp(mode, "w") == 0)
         flags |= O_WRONLY | O_CREAT | O_TRUNC;
 
-    if (strmp(mode, "w+") == 0)
+    if (strcmp(mode, "w+") == 0)
         flags |= O_RDWR | O_CREAT | O_TRUNC;
 
     if (strcmp(mode, "r") == 0)

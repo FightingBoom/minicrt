@@ -116,7 +116,7 @@ int mini_crt_heap_init()
     // 32MB heap size
     unsigned heap_size = 1024 * 1024 * 32;
 
-#ifdef WIIN32
+#ifdef WIN32
     base =
         VirtualAlloc(0, heap_size,
             MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
