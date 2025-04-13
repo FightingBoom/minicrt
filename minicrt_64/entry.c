@@ -5,8 +5,8 @@
 #include <Windows.h>
 #endif
 
-extern int main(int argc, char* argv[]);
-void exit(int);
+extern int main(long argc, char* argv[]);
+void exit(long);
 
 static void crt_fatal_error(const char* msg)
 {
@@ -16,11 +16,11 @@ static void crt_fatal_error(const char* msg)
 
 void mini_crt_entry(void)
 {
-    int ret;
+    long ret;
 
 #ifdef WIN32
-    int flag = 0;
-    int argc = 0;
+    long flag = 0;
+    long argc = 0;
     char* argv[16]; // 最多16个参数
     char* cl = GetCommandLineA();
 
@@ -46,36 +46,40 @@ void mini_crt_entry(void)
         cl++;
     }
 #else
-    int argc;
+    long argc;
     char** argv;
 
     char* ebp_reg = 0;
     // ebp_reg = %ebp
-    asm("movl %%ebp,%0 \n":"=r"(ebp_reg));
+    asm("movq %%rbp,%0 \n":"=r"(ebp_reg));
 
-    argc = *(int*)(ebp_reg + 4);
+    argc = *(long*)(ebp_reg + 4);
     argv = (char**)(ebp_reg + 8);
 
 #endif
 
-    if (!mini_crt_heap_init())
+    if (!mini_crt_init_heap())
+    {
         crt_fatal_error("heap initialize failed");
+    }
 
-    if (!mini_crt_io_init())
+    if (!mini_crt_init_io())
+    {
         crt_fatal_error("IO initialize failed");
+    }
 
     ret = main(argc, argv);
     exit(ret);
 }
 
-void exit(int exitCode)
+void exit(long exitCode)
 {
     // mini_crt_call_exit_routine();
 #ifdef WIN32
     ExitProcess(exitCode);
 #else
-    asm("movl %0,%%ebx \n\t"
-        "movl $1,%%ebx \n\t"
+    asm("movq %0,%%rbx \n\t"
+        "movq $1,%%rax \n\t"
         "int $0x80     \n\t"
         "hlt           \n\t"::"m"(exitCode));
 #endif

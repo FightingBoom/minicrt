@@ -8,7 +8,7 @@ typedef struct _heap_header
         HEAP_BLOCK_USED = 0xCDCDCDCD,   // magic of used block
     } type;
 
-    unsigned size;  // block size including
+    unsigned long size;  // block size including
     struct _heap_header* next;
     struct _heap_header* prev;
 } heap_header;
@@ -16,7 +16,7 @@ typedef struct _heap_header
 #define ADDR_ADD(a,o) (((char*)(a)) + o)
 #define HEADER_SIZE (sizeof(heap_header))
 
-static heap_header* list_head = NULL;
+heap_header* list_head = NULL;
 
 void free(void* ptr)
 {
@@ -46,7 +46,7 @@ void free(void* ptr)
     }
 }
 
-void* malloc(unsigned size)
+void* malloc(unsigned long size)
 {
     heap_header *header;
 
@@ -91,16 +91,16 @@ void* malloc(unsigned size)
 
 #ifndef WIN32
 // Linux brk system call
-static int brk(void* end_data_segment)
+static long brk(void* end_data_segment)
 {
-    int ret = 0;
+    long ret = 0;
     // brk system call number: 45
     // in /usr/include/asm-i386/unistd.h:
     // #define __NR_brk 45
-    asm("movl $45,  %%eax   \n\t"
-        "movl %1, %%ebx     \n\t"
+    asm("movq $45, %%rax    \n\t"
+        "movq %1, %%rbx     \n\t"
         "int $0x80          \n\t"
-        "movl %%eax, %0     \n\t"
+        "movq %%rax, %0     \n\t"
         : "=r"(ret): "m"(end_data_segment));
 }
 #endif
@@ -109,14 +109,14 @@ static int brk(void* end_data_segment)
 #include <Windows.h>
 #endif
 
-int mini_crt_heap_init()
+long mini_crt_init_heap()
 {
     void* base = NULL;
     heap_header *header = NULL;
     // 32MB heap size
-    unsigned heap_size = 1024 * 1024 * 32;
+    unsigned long heap_size = 1024 * 1024 * 32;
 
-#ifdef WIIN32
+#ifdef WIN32
     base =
         VirtualAlloc(0, heap_size,
             MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
